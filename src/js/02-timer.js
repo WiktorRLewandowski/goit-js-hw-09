@@ -1,6 +1,7 @@
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 require('flatpickr/dist/themes/material_blue.css');
+import Notiflix from 'notiflix';
 
 const calendarEl = document.getElementById('datetime-picker');
 const daysCounter = document.querySelector('.value[data-days]');
@@ -9,7 +10,10 @@ const minutesCounter = document.querySelector('.value[data-minutes]');
 const secondsCounter = document.querySelector('.value[data-seconds]');
 const startBtn = document.querySelector('button[data-start]');
 
+let now = new Date().getTime();
 let interval = null;
+let countdown = 0;
+
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -17,27 +21,39 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     const selectedDate = selectedDates[0].getTime();
-    const optimizedTime = selectedDate - today;
+
+    let optimizedTime = selectedDate - now;
     let timer = convertMs(optimizedTime);
-    console.log(timer);
-    if (selectedDate > today) {
+
+    clearInterval();
+    if (selectedDate > now) {
       startBtn.removeAttribute('disabled');
-      interval = setInterval(() => {
-        daysCounter.textContent = timer.days;
-        hoursCounter.textContent = timer.hours;
-        minutesCounter.textContent = timer.minutes;
-        secondsCounter.textContent = timer.seconds;
-      }, 1000);
+      daysCounter.innerText = addLeadingZero(timer.days);
+      hoursCounter.innerText = addLeadingZero(timer.hours);
+      minutesCounter.innerText = addLeadingZero(timer.minutes);
+      secondsCounter.innerText = addLeadingZero(timer.seconds);
+
+      startBtn.addEventListener('click', () => {
+        interval = setInterval(() => {
+          if (selectedDate - new Date().getTime() <= 0) {
+            clearInterval(interval);
+            Notiflix.Notify.success('Hurray!');
+          }
+          let timespan = selectedDate - new Date().getTime();
+          countdown = convertMs(timespan);
+          daysCounter.innerText = addLeadingZero(countdown.days);
+          hoursCounter.innerText = addLeadingZero(countdown.hours);
+          minutesCounter.innerText = addLeadingZero(countdown.minutes);
+          secondsCounter.innerText = addLeadingZero(countdown.seconds);
+        }, 1000);
+      });
     } else {
-      alert('Please, select future date.');
+      Notiflix.Notify.failure('Please, select future date.');
       startBtn.setAttribute('disabled', '');
     }
-
-    // startBtn.addEventListener('click', countStarter(selectedDate));
   },
 };
 
-const today = new Date().getTime();
 flatpickr(calendarEl, options);
 
 function convertMs(ms) {
@@ -54,13 +70,6 @@ function convertMs(ms) {
   return { days, hours, minutes, seconds };
 }
 
-// let interval = null;
-// function countStarter(value) {
-//   interval = setInterval(() => {
-//     value = value - new Date().getTime();
-//     return value;
-//   }, 1000);
-//   if (value === new Date().getTime()) {
-//     clearInterval();
-//   }
-// }
+function addLeadingZero(value) {
+  return value.toString().padStart(2, '0');
+}
