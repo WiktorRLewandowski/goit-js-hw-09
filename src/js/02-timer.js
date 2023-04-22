@@ -1,7 +1,11 @@
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
-require('flatpickr/dist/themes/material_blue.css');
+require('flatpickr/dist/themes/dark.css');
 import Notiflix from 'notiflix';
+
+Notiflix.Notify.init({
+  position: 'center-top',
+});
 
 const calendarEl = document.getElementById('datetime-picker');
 const daysCounter = document.querySelector('.value[data-days]');
@@ -9,6 +13,7 @@ const hoursCounter = document.querySelector('.value[data-hours]');
 const minutesCounter = document.querySelector('.value[data-minutes]');
 const secondsCounter = document.querySelector('.value[data-seconds]');
 const startBtn = document.querySelector('button[data-start]');
+const timerEl = document.querySelector('.timer');
 
 let now = new Date().getTime();
 let interval = null;
@@ -20,25 +25,18 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    const selectedDate = selectedDates[0].getTime();
+    let selectedDate = selectedDates[0].getTime();
 
-    let optimizedTime = selectedDate - now;
-    let timer = convertMs(optimizedTime);
-
-    clearInterval();
     if (selectedDate > now) {
       startBtn.removeAttribute('disabled');
-      daysCounter.innerText = addLeadingZero(timer.days);
-      hoursCounter.innerText = addLeadingZero(timer.hours);
-      minutesCounter.innerText = addLeadingZero(timer.minutes);
-      secondsCounter.innerText = addLeadingZero(timer.seconds);
-
       startBtn.addEventListener('click', () => {
         interval = setInterval(() => {
           if (selectedDate - new Date().getTime() <= 0) {
             clearInterval(interval);
-            Notiflix.Notify.success('Hurray!');
+            Notiflix.Notify.success('KABOOM!');
+            return;
           }
+          timerEl.style.color = '#009900';
           let timespan = selectedDate - new Date().getTime();
           countdown = convertMs(timespan);
           daysCounter.innerText = addLeadingZero(countdown.days);
@@ -51,6 +49,16 @@ const options = {
       Notiflix.Notify.failure('Please, select future date.');
       startBtn.setAttribute('disabled', '');
     }
+  },
+  onValueUpdate(selectedDates) {
+    let selectedDate = selectedDates[0].getTime();
+    clearInterval(interval);
+    // let timespan = selectedDate - new Date().getTime();
+    countdown = 0;
+    daysCounter.innerText = addLeadingZero('');
+    hoursCounter.innerText = addLeadingZero('');
+    minutesCounter.innerText = addLeadingZero('');
+    secondsCounter.innerText = addLeadingZero('');
   },
 };
 
