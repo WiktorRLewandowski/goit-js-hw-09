@@ -18,6 +18,7 @@ const timerEl = document.querySelector('.timer');
 let now = new Date().getTime();
 let interval = null;
 let countdown = 0;
+let selectedDate = 0;
 
 const options = {
   enableTime: true,
@@ -25,44 +26,24 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    let selectedDate = selectedDates[0].getTime();
-
+    selectedDate = selectedDates[0].getTime();
     if (selectedDate > now) {
       startBtn.removeAttribute('disabled');
-      startBtn.addEventListener('click', () => {
-        interval = setInterval(() => {
-          if (selectedDate - new Date().getTime() <= 0) {
-            clearInterval(interval);
-            Notiflix.Notify.success('KABOOM!');
-            return;
-          }
-          timerEl.style.color = '#009900';
-          let timespan = selectedDate - new Date().getTime();
-          countdown = convertMs(timespan);
-          daysCounter.innerText = addLeadingZero(countdown.days);
-          hoursCounter.innerText = addLeadingZero(countdown.hours);
-          minutesCounter.innerText = addLeadingZero(countdown.minutes);
-          secondsCounter.innerText = addLeadingZero(countdown.seconds);
-        }, 1000);
-      });
     } else {
       Notiflix.Notify.failure('Please, select future date.');
       startBtn.setAttribute('disabled', '');
     }
+    return selectedDate;
   },
-  onValueUpdate(selectedDates) {
-    let selectedDate = selectedDates[0].getTime();
+  onValueUpdate() {
     clearInterval(interval);
-    // let timespan = selectedDate - new Date().getTime();
-    countdown = 0;
+    timerEl.style.color = 'rgba(144, 238, 144, 0.185)';
     daysCounter.innerText = addLeadingZero('');
     hoursCounter.innerText = addLeadingZero('');
     minutesCounter.innerText = addLeadingZero('');
     secondsCounter.innerText = addLeadingZero('');
   },
 };
-
-flatpickr(calendarEl, options);
 
 function convertMs(ms) {
   const second = 1000;
@@ -81,3 +62,24 @@ function convertMs(ms) {
 function addLeadingZero(value) {
   return value.toString().padStart(2, '0');
 }
+
+const countdownHandler = () => {
+  interval = setInterval(() => {
+    if (selectedDate - new Date().getTime() <= 0) {
+      clearInterval(interval);
+      Notiflix.Notify.success('KABOOM!');
+      return;
+    }
+    timerEl.style.color = '#009900';
+    let timespan = selectedDate - new Date().getTime();
+    countdown = convertMs(timespan);
+    daysCounter.innerText = addLeadingZero(countdown.days);
+    hoursCounter.innerText = addLeadingZero(countdown.hours);
+    minutesCounter.innerText = addLeadingZero(countdown.minutes);
+    secondsCounter.innerText = addLeadingZero(countdown.seconds);
+  }, 1000);
+};
+
+flatpickr(calendarEl, options);
+
+startBtn.addEventListener('click', countdownHandler);
