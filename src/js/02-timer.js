@@ -15,7 +15,6 @@ const secondsCounter = document.querySelector('.value[data-seconds]');
 const startBtn = document.querySelector('button[data-start]');
 const timerEl = document.querySelector('.timer');
 
-let now = new Date().getTime();
 let interval = null;
 let countdown = 0;
 let selectedDate = 0;
@@ -27,7 +26,7 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     selectedDate = selectedDates[0].getTime();
-    if (selectedDate > now) {
+    if (selectedDate > new Date().getTime()) {
       startBtn.removeAttribute('disabled');
     } else {
       Notiflix.Notify.failure('Please, select future date.');
@@ -70,6 +69,7 @@ const countdownHandler = () => {
       Notiflix.Notify.success('KABOOM!');
       return;
     }
+    startBtn.setAttribute('disabled', '');
     timerEl.style.color = '#009900';
     let timespan = selectedDate - new Date().getTime();
     countdown = convertMs(timespan);
